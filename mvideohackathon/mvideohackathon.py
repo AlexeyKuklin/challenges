@@ -73,7 +73,7 @@ le = LabelEncoder()
 X_train, y_train = get_data('X_train.csv', True)
 y_train = le.fit_transform(y_train)
 
-"""
+
 print('cross validation score:',
        cross_val_score(clf, X_train, y_train, 
                       groups=None, 
@@ -82,7 +82,7 @@ print('cross validation score:',
                       n_jobs=1, 
                       verbose=0, 
                       fit_params=None))
-"""
+
 
 clf.fit(X_train, y_train)
 
@@ -93,5 +93,5 @@ y = pd.DataFrame(y, columns=['rating'])
 #save result
 df = pd.read_csv('X_final_test.csv')
 df = pd.concat([df, y], axis=1)
-df.to_csv('X_final_test_result.csv', index=False,  quoting=csv.QUOTE_NONNUMERIC)
+df.to_csv('X_final_test_result.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
 
