@@ -7,6 +7,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import SGDClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import LabelEncoder
+import csv
 
 
 def ng(s, n, rid, rows, cols, data):
@@ -21,17 +22,21 @@ def ng(s, n, rid, rows, cols, data):
     return rows, cols, data              
 
 
-def get_data():
+def get_data(file_name, is_train):
     rows, cols, data, y = [], [], [], []
 
-    df = pd.read_csv('X_train.csv')
-    df = df[['reting',
-             'comment',
-             'commentNegative',
-             'commentPositive']]
+    df = pd.read_csv(file_name)
+
+    model_cols = ['comment', 'commentNegative', 'commentPositive']
+
+    if is_train:
+        model_cols.append('reting')
+
+    df = df[model_cols]
 
     for rid, r in df.iterrows():
-        y.append(int(r['reting']))
+        if is_train:
+            y.append(int(r['reting']))
         
         s = r['comment'].lower() + ' ' + str(r['commentNegative']).lower() + ' ' + str(r['commentPositive']).lower()
         rows, cols, data = ng(s, 8, rid, rows, cols, data)
@@ -65,12 +70,28 @@ clf = SGDClassifier(alpha=0.0001,
 clf = OneVsRestClassifier(clf)
 le = LabelEncoder()
 
-X_train, y_train = get_data()
+X_train, y_train = get_data('X_train.csv', True)
 y_train = le.fit_transform(y_train)
-print(cross_val_score(clf, X_train, y_train, 
+
+"""
+print('cross validation score:',
+       cross_val_score(clf, X_train, y_train, 
                       groups=None, 
                       scoring=None, 
                       cv=5, 
                       n_jobs=1, 
                       verbose=0, 
                       fit_params=None))
+"""
+
+clf.fit(X_train, y_train)
+
+X_test, _ = get_data('X_final_test.csv', False)
+y = le.inverse_transform(clf.predict(X_test))
+y = pd.DataFrame(y, columns=['rating'])
+
+#save result
+df = pd.read_csv('X_final_test.csv')
+df = pd.concat([df, y], axis=1)
+df.to_csv('X_final_test_result.csv', index=False,  quoting=csv.QUOTE_NONNUMERIC)
+
